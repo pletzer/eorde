@@ -4,6 +4,7 @@ import re
 class Planet:
 
     def __init__(self, level=0, textureFile='../data/2k_earth_daymap.jpeg'):
+
         self.transf = vtk.vtkTransform()
         self.globe = vtk.vtkTexturedSphereSource()
         self.texture = vtk.vtkTexture()
