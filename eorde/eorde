@@ -1,0 +1,50 @@
+#!/usr/bin/env python
+
+import argparse
+import sys
+import netCDF4
+from eoNCReader import NCReader
+from eoContours import Contours
+from eoScene import Scene
+
+parser = argparse.ArgumentParser(description='Visualize earth data')
+parser.add_argument('--contours', default='', help='Show contours')
+parser.add_argument('-f', dest='filename', default='', help='File name')
+args = parser.parse_args()
+
+if not len(args.filename):
+    print('ERROR: must supply a file name')
+    sys.exit(1)
+
+# read the file
+reader = NCReader(args.filename)
+lons = reader.getLongitudes()
+lats = reader.getLatitudes()
+dts = reader.getDateTimes()
+
+pipelines = []
+
+if args.contours:
+    ctrs = Contours(level=1)
+    lons2d, lats2d = lons, lats
+    if len(lons.shape) == 1:
+        lons2d, lats2d = ctrs.get2DLonsLats(lons, lats)
+    ctrs.setPoints(lons=lons2d, lats=lats2d)
+    data = reader.getVariable(args.contours)
+    if data is not None:
+        # for the time being
+        ctrs.setData(data[0,...])
+    else:
+        print(f'ERROR: no variable called {args.contours}')
+        sys.exit(2)
+    pipelines.append(ctrs)
+
+scn = Scene()
+scn.addPipelines(pipelines)
+scn.show()
+
+
+
+
+
+

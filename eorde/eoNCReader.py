@@ -26,6 +26,17 @@ class NCReader:
     def getLatitudes(self):
         return self.nc.variables[self.latName][:]
 
+    def getPoints(self):
+        lons = self.getLongitudes()
+        lats = self.getLatitudes()
+        if len(lons.shape) == 1:
+            lons, lats = numpy.meshgrid(lons, lats, indexing='ij')
+        n = numpy.prod(lons.shape)
+        xyz = numpy.zeros((n, 3), numpy.float64)
+        xyz[:, 0] = lons.flat
+        xyz[:, 1] = lats.flat
+        return xyz
+
     def getTimes(self):
         return self.nc.variables[self.timeName][:]
 
@@ -49,12 +60,12 @@ class NCReader:
 
 
     def getVariable(self, standard_name):
-        var = []
+        res = None
         for vn in self.nc.variables:
             v = self.nc.variables[vn]
             if hasattr(v, 'standard_name') and v.standard_name == standard_name:
                 return v[:]
-        return var
+        return res
 
 ###############################################################################
 
@@ -66,6 +77,8 @@ def test():
     print(f'latitudes: {lats}')
     dts = n.getDateTimes()
     print(f'times: {dts}')
+    var = n.getVariable('sea_surface_temperature')
+    print(f'var tos: {var}')
 
 if __name__ == '__main__':
     test()
