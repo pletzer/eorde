@@ -4,11 +4,14 @@ import argparse
 import sys
 import netCDF4
 from eoNCReader import NCReader
+from eoSphere import Sphere
+from eoContinents import Continents
 from eoContours import Contours
 from eoScene import Scene
 
 parser = argparse.ArgumentParser(description='Visualize earth data')
 parser.add_argument('--contours', default='', help='Show contours')
+parser.add_argument('--continents', action='store_true', help='Show continents')
 parser.add_argument('-f', dest='filename', default='', help='File name')
 args = parser.parse_args()
 
@@ -24,8 +27,13 @@ dts = reader.getDateTimes()
 
 pipelines = []
 
+if args.continents:
+    sphr = Sphere(level=0)
+    cnts = Continents(level=1)
+    pipelines += [sphr, cnts]
+
 if args.contours:
-    ctrs = Contours(level=1)
+    ctrs = Contours(level=2)
     lons2d, lats2d = lons, lats
     if len(lons.shape) == 1:
         lons2d, lats2d = ctrs.get2DLonsLats(lons, lats)

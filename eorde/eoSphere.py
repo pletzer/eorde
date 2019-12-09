@@ -1,21 +1,21 @@
 import vtk
 
 
-class Continents:
+class Sphere:
 
     def __init__(self, level=0):
 
-        self.continents = vtk.vtkEarthSource()
+        self.sphere = vtk.vtkSphereSource()
         self.mapper = vtk.vtkPolyDataMapper()
         self.actor = vtk.vtkActor()
 
         # connect
         self.actor.SetMapper(self.mapper)
-        self.mapper.SetInputConnection(self.continents.GetOutputPort())
+        self.mapper.SetInputConnection(self.sphere.GetOutputPort())
 
-        self.continents.SetRadius(100. + level)
-        self.actor.GetProperty().SetColor(0., 0., 0.)
-
+        self.sphere.SetRadius(100. + level)
+        self.sphere.SetPhiResolution(32)
+        self.sphere.SetThetaResolution(64)
 
     def getActor(self):
         return self.actor
@@ -24,9 +24,9 @@ class Continents:
 
 def test():
     from eoScene import Scene
-    c = Continents(level=1)
+    p = Sphere(level=1)
     s = Scene()
-    s.addPipelines([c])
+    s.addPipelines([p])
     s.setBackground(0.9, 0.9, 0.9)
     s.show()
 
