@@ -15,7 +15,9 @@ class Contours(BasePointScalar):
 
 
     def setContourValues(self, vals):
-        for i in range(len(vals)):
+        n = len(vals)
+        self.contour.SetNumberOfContours(n)
+        for i in range(n):
             self.contour.SetValue(i, vals[i])
 
 
@@ -23,17 +25,18 @@ class Contours(BasePointScalar):
 
 def test():
     from eoScene import Scene
+    import eoUtils
 
-    nx1, ny1 = 21, 11
+    nx1, ny1 = 10 + 1, 5 + 1
     x = numpy.linspace(0., 360., nx1)
     y = numpy.linspace(-90., 90., ny1)
-    xx, yy = numpy.meshgrid(x, y, indexing='ij')
-    data = numpy.cos(numpy.pi * xx / 180.0) * numpy.sin(numpy.pi * yy / 180.0)
+    xx, yy = eoUtils.get2D(x, y)
+    data = numpy.sin(numpy.pi * xx / 180.0) * numpy.cos(numpy.pi * yy / 180.0)
 
     c = Contours()
     c.setPoints(lons=xx, lats=yy)
     c.setData(data)
-    c.setContourValues([-1., -0.8, -.2, 0.3, 0.5, 0.9])
+    c.setContourValues(numpy.linspace(-1., 1., 21))
 
     s = Scene()
     s.addPipelines([c])

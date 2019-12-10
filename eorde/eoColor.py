@@ -19,12 +19,14 @@ class Color(BasePointScalar):
 
 def test():
     from eoScene import Scene
+    import eoUtils
 
-    nx1, ny1 = 8+1, 4+1
+    nx1, ny1 = 10 + 1, 5 + 1
     x = numpy.linspace(0., 360., nx1)
     y = numpy.linspace(-90., 90., ny1)
-    xx, yy = numpy.meshgrid(x, y, indexing='ij')
-    data = numpy.cos(numpy.pi * xx / 180.0) * numpy.sin(numpy.pi * yy / 180.0)
+    xx, yy = eoUtils.get2D(x, y)
+
+    data = numpy.sin(numpy.pi * xx / 180.0) * numpy.cos(numpy.pi * yy / 180.0)
 
     c = Color()
     c.setPoints(lons=xx, lats=yy)

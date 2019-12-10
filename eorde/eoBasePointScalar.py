@@ -19,6 +19,9 @@ class BasePointScalar(object):
         self.points.SetData(self.pointArray)
         self.sgrid.SetPoints(self.points)
 
+        self.nx, self.ny = 0, 0
+        self.ntot = 0
+
         self.radius = 100. + level
 
     def connect(self):
@@ -27,36 +30,27 @@ class BasePointScalar(object):
         self.actor.SetMapper(self.mapper)
 
 
-    def get2DLonsLats(self, lons1D, lats1D):
-        return numpy.meshgrid(lons1D, lats1D, indexing='ij')
-
-
-    def setXYZPoints(self, xyz):
-        n = xyz.shape[0]
-        self.points.SetNumberOfPoints(n)
-        self.pointArray.SetVoidArray(xyz, n*3, 1)
-
-
     def setPoints(self, lons, lats):
         self.sgrid.SetDimensions(lons.shape[1], lons.shape[0], 1)
-        n = numpy.prod(lons.shape)
-        self.xyz = numpy.zeros((n, 3), numpy.float64)
+        self.ntot = numpy.prod(lons.shape)
+        self.xyz = numpy.zeros((self.ntot, 3), numpy.float64)
         zz = self.radius * numpy.sin(numpy.pi * lats / 180.)
         rr = self.radius * numpy.cos(numpy.pi * lats / 180.)
         xx = rr * numpy.cos(numpy.pi * lons / 180.)
         yy = rr * numpy.sin(numpy.pi * lons / 180.)
-        print(xx.shape)
-        print(self.xyz.shape)
-        print(xx[:])
         self.xyz[:, 0] = xx.ravel()
         self.xyz[:, 1] = yy.ravel()
         self.xyz[:, 2] = zz.ravel()
-        self.setXYZPoints(self.xyz)
+        self.points.SetNumberOfPoints(self.ntot)
+        self.pointArray.SetVoidArray(self.xyz, self.ntot*3, 1)
+
 
     def setData(self, data):
         n = numpy.prod(data.shape)
-        self.dataArray.SetVoidArray(data, n, 1)
+        assert(n == self.ntot)
+        self.dataArray.SetVoidArray(data, self.ntot, 1)
         self.sgrid.GetPointData().SetScalars(self.dataArray)
+
 
     def getActor(self):
         return self.actor
