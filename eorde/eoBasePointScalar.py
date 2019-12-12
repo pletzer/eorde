@@ -8,6 +8,7 @@ class BasePointScalar(object):
         self.data = []
         self.dataArray = vtk.vtkDoubleArray()
         self.xyz = []
+        self.lut = vtk.vtkLookupTable()
         self.pointArray = vtk.vtkDoubleArray()
         self.points = vtk.vtkPoints()
         self.sgrid = vtk.vtkStructuredGrid()
@@ -18,6 +19,7 @@ class BasePointScalar(object):
         self.pointArray.SetNumberOfComponents(3)
         self.points.SetData(self.pointArray)
         self.sgrid.SetPoints(self.points)
+        self.mapper.SetLookupTable(self.lut)
 
         self.ndims = 0
         self.nx, self.ny = 0, 0
@@ -26,8 +28,6 @@ class BasePointScalar(object):
         self.radius = 100. + level
 
         self.timeIndex = -1
-        self.latIndex = -1
-        self.lonIndex = -1
 
         self.timeCount = 0
         self.numTimes = 0
@@ -35,45 +35,50 @@ class BasePointScalar(object):
         self.ncVar = None
 
 
-    def setPoints(self, lons, lats):
-        self.sgrid.SetDimensions(lons.shape[1], lons.shape[0], 1)
-        self.ntot = numpy.prod(lons.shape)
-        self.xyz = numpy.zeros((self.ntot, 3), numpy.float64)
-        zz = self.radius * numpy.sin(numpy.pi * lats / 180.)
-        rr = self.radius * numpy.cos(numpy.pi * lats / 180.)
-        xx = rr * numpy.cos(numpy.pi * lons / 180.)
-        yy = rr * numpy.sin(numpy.pi * lons / 180.)
-        self.xyz[:, 0] = xx.ravel()
-        self.xyz[:, 1] = yy.ravel()
-        self.xyz[:, 2] = zz.ravel()
-        self.points.SetNumberOfPoints(self.ntot)
-        self.pointArray.SetVoidArray(self.xyz, self.ntot*3, 1)
+    def setNetCDFVariable(self, ncReader, standardName):
 
+        self.ncVar = ncReader.getNetCDFVariable(standardName)
+        nc = ncReader.getNetCDFFileHandle()
 
-    def setNetCDFVariable(self, nc, ncVar):
-        self.ncVar = ncVar
         self.ndims = len(self.ncVar.shape)
-        # figure out which dimension are time and elev
+
+        # figure out the mapping of indices to time, lon, lat
+        # NEED TO ADD SUPPORT FOR ELEVATION!
         self.timeIndex = -1
         self.latIndex = -1
-        self.lonIndex = -1
-        self.ntot = 1
         indx = 0
-        for axis in ncVar.dimensions:
+        for axis in self.ncVar.dimensions:
             standardName = getattr(nc.variables[axis], 'standard_name', '')
             if standardName == 'time':
                 self.timeIndex = indx
-                self.numTimes = ncVar.shape[indx]
-            else:
-                # lon or lat WOULD NEED TO CHECK FOR ELEVATION AS WELL
-                self.ntot *= ncVar.shape[indx]
-                if standardName == 'longitude':
-                    self.nx = ncVar.shape[indx]
-                    self.lonIndex = indx
-                elif standardName == 'latitude':
-                    self.ny = ncVar.shape[indx]
-                    self.latIndex = indx
+                self.numTimes = self.ncVar.shape[indx]
             indx += 1
+
+        # get the grid
+        llons, llats = ncReader.get2DLonsLats()
+        zz = self.radius * numpy.sin(numpy.pi * llats / 180.)
+        rr = self.radius * numpy.cos(numpy.pi * llats / 180.)
+        xx = rr * numpy.cos(numpy.pi * llons / 180.)
+        yy = rr * numpy.sin(numpy.pi * llons / 180.)
+        self.ntot = numpy.prod(llons.shape)
+        self.xyz = numpy.zeros((self.ntot, 3), numpy.float64)
+        self.xyz[:, 0] = xx.ravel()
+        self.xyz[:, 1] = yy.ravel()
+        self.xyz[:, 2] = zz.ravel()
+
+        # 2D
+        self.sgrid.SetDimensions(llons.shape[1], llons.shape[0], 1)
+        self.points.SetNumberOfPoints(self.ntot)
+        self.pointArray.SetVoidArray(self.xyz, self.ntot*3, 1)
+
+        # compute min/max values and build the look up table
+        data = self.ncVar[:]
+        dataMin, dataMax = data.min(), data.max()
+        self.lut.SetTableRange(dataMin, dataMax)
+        self.lut.SetHueRange(0.677, 0.)
+        self.lut.Build()
+
+        self.dataArray.SetName(standardName)
 
 
     def update(self, key):
@@ -83,13 +88,11 @@ class BasePointScalar(object):
                   [self.timeCount] + \
                   [slice(0, None) for i in range(self.timeIndex + 1, self.ndims)]
             print(f'info: updating time count = {self.timeCount} slc = {slc}')
-            data = self.ncVar[slc].data
-            validRange = (data > -10) * (data < 100)
-            data *= validRange
-            print(f'*** data.min() = {data.min()} data.max() = {data.max()} ')
-            print(f'type(data) = {type(data)}')
+            data = self.ncVar[slc]
             self.dataArray.SetVoidArray(data, self.ntot, 1)
-            self.sgrid.GetPointData().SetScalars(self.dataArray)
+            self.sgrid.GetCellData().SetScalars(self.dataArray)
+            print(self.sgrid)
+            print(f'shape of data: {data.shape}')
             self.timeCount = (self.timeCount + 1) % self.numTimes
         else:
             print(f'Warning: not a valid key {key}')
@@ -106,12 +109,9 @@ def test():
     from eoNCReader import NCReader
 
     n = NCReader('../data/tos_Omon_GFDL-CM4_historical_r1i1p1f1_gr_201001-201412.nc')
-    nc = n.getNetCDFFileHandle()
-    llons, llats = n.get2DLonsLats()
 
     c = Color()
-    c.setPoints(llons, llats)
-    c.setNetCDFVariable(nc, n.getNetCDFVariable('sea_surface_temperature'))
+    c.setNetCDFVariable(n, 'sea_surface_temperature')
 
     s = Scene()
     s.setBackground(0.3, 0.3, 0.3)

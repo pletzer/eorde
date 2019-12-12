@@ -6,20 +6,20 @@ class NCReader:
 
     def __init__(self, filename):
         self.EPS = 1.23e-10
-        self.lonName = ''
-        self.latName = ''
+        self.lonBoundsName = ''
+        self.latBoundsName = ''
         self.timeName = ''
         self.nc = netCDF4.Dataset(filename)
 
         for vn in self.nc.variables:
             v = self.nc.variables[vn]
-            if hasattr(v, 'standard_name'):
-                if v.standard_name.lower().strip() == 'longitude':
-                    self.lonName = vn
-                elif v.standard_name.lower().strip() == 'latitude':
-                    self.latName = vn
-                elif v.standard_name.lower().strip() == 'time':
-                    self.timeName = vn
+            longName = getattr(v, 'long_name', '').lower().strip()
+            if longName == 'longitude bounds':
+                self.lonBoundsName = vn
+            elif longName.lower().strip() == 'latitude bounds':
+                self.latBoundsName = vn
+            elif longName == 'time':
+                self.timeName = vn
 
 
     def getNetCDFFileHandle(self):
@@ -27,22 +27,21 @@ class NCReader:
 
 
     def getLongitudes(self):
-        return self.nc.variables[self.lonName][:]
+        x = self.nc.variables[self.lonBoundsName][:, 0]
+        x1 = self.nc.variables[self.lonBoundsName][-1, 1]
+        return numpy.append(x, x1)
 
 
     def getLatitudes(self):
-        return self.nc.variables[self.latName][:]
+        y = self.nc.variables[self.latBoundsName][:, 0]
+        y1 = self.nc.variables[self.latBoundsName][-1, 1]
+        return numpy.append(y, y1)
 
 
     def get2DLonsLats(self):
         lons = self.getLongitudes()
         lats = self.getLatitudes()
-        print(f'*** lons.shape = {lons.shape}')
         if len(lons.shape) == 1:
-            if lons[0] + 360. > lons[-1] + self.EPS:
-                # add another longitude to close the gap
-                lons = numpy.append(lons, [lons[0] + 360.])
-            # turn the1d arrays into 2d arrays
             lons, lats = numpy.meshgrid(lons, lats, indexing='ij')
         return lons, lats
 
