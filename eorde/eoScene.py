@@ -1,5 +1,19 @@
 import vtk
 
+class CallBack(object):
+    def __init__(self, pipelines, ren):
+        self.pipelines = pipelines
+        self.ren = ren
+
+    def execute(self, obj, event):
+        #print(obj.GetClassName(), "Event Id:", event)
+        #print(dir(event))
+        key = obj.GetKeySym()
+        for p in self.pipelines:
+            p.update(key)
+        self.ren.Render()
+
+
 class Scene:
 
     def __init__(self):
@@ -10,32 +24,40 @@ class Scene:
         self.camera = vtk.vtkCamera()
         self.camera.OrthogonalizeViewUp()
         self.camera.SetFocalPoint(0., 0., 0.)
-        #self.camera.Roll(270. - self.midLon)
-
-        #radius = 5.0
-        #x = radius*numpy.cos(self.midLat*numpy.pi/180.)*numpy.cos(self.midLon*numpy.pi/180.)
-        #y = radius*numpy.cos(self.midLat*numpy.pi/180.)*numpy.sin(self.midLon*numpy.pi/180.)
-        #z = radius*numpy.sin(self.midLat*numpy.pi/180.)
-        #self.camera.SetPosition(x, y, z)
+        self.camera.SetDistance(500.)
 
         self.ren.SetActiveCamera(self.camera)
         self.renWin.AddRenderer(self.ren)
         self.iren.SetRenderWindow(self.renWin)
 
+        self.renWin.SetSize(1200, 960)
+        self.ren.SetBackground(0.1, 0.1, 0.2)
+
+        self.pipelines = []
+        self.callBack = None
+
 
 
     def addPipelines(self, pips):
-        for p in pips:
-            self.ren.AddActor(p.getActor())
+        self.pipelines += pips
+
 
     def setWindowSize(self, width, height):
         self.renWin.SetSize(width, height)
 
+
     def setBackground(self, r, g, b):
         self.ren.SetBackground(r, g, b)
 
-    def show(self):
-        self.iren.Initialize()
+
+    def start(self):
+        self.callBack = CallBack(self.pipelines, self.ren)
+        for p in self.pipelines:
+            self.ren.AddActor(p.getActor())
+
+        self.iren.AddObserver('KeyPressEvent', self.callBack.execute)
         self.renWin.Render()
+        self.iren.Initialize()
         self.iren.Start()
+
 

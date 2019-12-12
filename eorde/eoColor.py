@@ -19,22 +19,21 @@ class Color(BasePointScalar):
 
 def test():
     from eoScene import Scene
-    import eoUtils
+    from eoColor import Color
+    from eoNCReader import NCReader
 
-    nx1, ny1 = 10 + 1, 5 + 1
-    x = numpy.linspace(0., 360., nx1)
-    y = numpy.linspace(-90., 90., ny1)
-    xx, yy = eoUtils.get2D(x, y)
+    n = NCReader('../data/tos_Omon_GFDL-CM4_historical_r1i1p1f1_gr_201001-201412.nc')
+    nc = n.getNetCDFFileHandle()
 
-    data = numpy.sin(numpy.pi * xx / 180.0) * numpy.cos(numpy.pi * yy / 180.0)
 
     c = Color()
-    c.setPoints(lons=xx, lats=yy)
-    c.setData(data)
+    c.setNetCDFVariable(nc, n.getNetCDFVariable('sea_surface_temperature'))
 
     s = Scene()
+    s.setBackground(0.3, 0.3, 0.3)
     s.addPipelines([c])
-    s.show()
+    s.start()
+
 
 if __name__ == '__main__':
     test()

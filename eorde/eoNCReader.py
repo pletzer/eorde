@@ -1,10 +1,11 @@
 import netCDF4
-import re
 import datetime
+import numpy
 
 class NCReader:
 
     def __init__(self, filename):
+        self.EPS = 1.23e-10
         self.lonName = ''
         self.latName = ''
         self.timeName = ''
@@ -20,25 +21,35 @@ class NCReader:
                 elif v.standard_name.lower().strip() == 'time':
                     self.timeName = vn
 
+
+    def getNetCDFFileHandle(self):
+        return self.nc
+
+
     def getLongitudes(self):
         return self.nc.variables[self.lonName][:]
+
 
     def getLatitudes(self):
         return self.nc.variables[self.latName][:]
 
-    def getPoints(self):
+
+    def get2DLonsLats(self):
         lons = self.getLongitudes()
         lats = self.getLatitudes()
+        print(f'*** lons.shape = {lons.shape}')
         if len(lons.shape) == 1:
+            if lons[0] + 360. > lons[-1] + self.EPS:
+                # add another longitude to close the gap
+                lons = numpy.append(lons, [lons[0] + 360.])
+            # turn the1d arrays into 2d arrays
             lons, lats = numpy.meshgrid(lons, lats, indexing='ij')
-        n = numpy.prod(lons.shape)
-        xyz = numpy.zeros((n, 3), numpy.float64)
-        xyz[:, 0] = lons.flat
-        xyz[:, 1] = lats.flat
-        return xyz
+        return lons, lats
+
 
     def getTimes(self):
         return self.nc.variables[self.timeName][:]
+
 
     def getTimeUnits(self):
         units = ''
@@ -46,6 +57,7 @@ class NCReader:
         if hasattr(v, 'units'):
             units = v.units
         return units
+
 
     def getDateTimes(self):
         tv = self.getTimes()
@@ -59,13 +71,14 @@ class NCReader:
         return dts
 
 
-    def getVariable(self, standard_name):
+    def getNetCDFVariable(self, standard_name):
         res = None
         for vn in self.nc.variables:
             v = self.nc.variables[vn]
             if hasattr(v, 'standard_name') and v.standard_name == standard_name:
-                return v[:]
+                return v
         return res
+
 
 ###############################################################################
 
@@ -75,9 +88,10 @@ def test():
     print(f'longitudes: {lons}')
     lats = n.getLatitudes()
     print(f'latitudes: {lats}')
+    llons, llats = n.get2DLonsLats()
     dts = n.getDateTimes()
     print(f'times: {dts}')
-    var = n.getVariable('sea_surface_temperature')
+    var = n.getNetCDFVariable('sea_surface_temperature')
     print(f'var tos: {var}')
 
 if __name__ == '__main__':

@@ -74,7 +74,7 @@ if args.color:
 
 scn = Scene()
 scn.addPipelines(pipelines)
-scn.show()
+scn.start()
 
 
 
