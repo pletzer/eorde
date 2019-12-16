@@ -22,12 +22,6 @@ class Scene:
         self.renWin = vtk.vtkRenderWindow()
         self.iren = vtk.vtkRenderWindowInteractor()
 
-        self.camera = vtk.vtkCamera()
-        self.camera.OrthogonalizeViewUp()
-        self.camera.SetFocalPoint(0., 0., 0.)
-        self.camera.SetDistance(15.)
-
-        #self.ren.SetActiveCamera(self.camera)
         self.renWin.AddRenderer(self.ren)
         self.iren.SetRenderWindow(self.renWin)
 
@@ -40,7 +34,9 @@ class Scene:
 
 
     def addPipelines(self, pips):
-        self.pipelines += pips
+        self.pipelines = pips
+        for p in self.pipelines:
+            self.ren.AddActor(p.getActor())
 
 
     def setWindowSize(self, width, height):
@@ -53,9 +49,6 @@ class Scene:
 
     def start(self):
         self.callBack = CallBack(self.pipelines, self.renWin)
-        for p in self.pipelines:
-            self.ren.AddActor(p.getActor())
-
         self.iren.AddObserver('KeyPressEvent', self.callBack.execute)
         self.renWin.Render()
         self.iren.Initialize()

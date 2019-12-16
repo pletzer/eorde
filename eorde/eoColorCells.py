@@ -96,6 +96,10 @@ class ColorCells:
         self.actor.SetMapper(self.mapper)
 
 
+    def getDateTimes(self):
+        return self.ncReader.getDateTimes()
+
+
     def getDataAtTime(self, timeStep):
         if self.timeIndexPos < 0:
             # no time!
@@ -135,14 +139,20 @@ class ColorCells:
 def test():
 
     from eoScene import Scene
+    from eoContinents import Continents
+    from eoDateTimes import DateTimes
     
     filename = '../data/tos_Omon_GFDL-CM4_historical_r1i1p1f1_gr_201001-201412.nc'
     varStandardName = 'sea_surface_temperature'
-    c = ColorCells(filename=filename, varStandardName=varStandardName, level=0)
+    color = ColorCells(filename=filename, varStandardName=varStandardName, level=0)
+
+    continents = Continents(level=1)
+
+    dateTimes = DateTimes(dts=color.getDateTimes(), pos=(800, 900), size=52, color=(1., 0., 0.))
 
     s = Scene()
     s.setBackground(0.7, 0.7, 0.7)
-    s.addPipelines([c])
+    s.addPipelines([color, continents, dateTimes])
     s.start()
 
 

@@ -5,6 +5,8 @@ class Continents:
 
     def __init__(self, level=0):
 
+        self.radius = 1. + 0.01 * level
+
         self.continents = vtk.vtkEarthSource()
         self.mapper = vtk.vtkPolyDataMapper()
         self.actor = vtk.vtkActor()
@@ -13,8 +15,12 @@ class Continents:
         self.actor.SetMapper(self.mapper)
         self.mapper.SetInputConnection(self.continents.GetOutputPort())
 
-        self.continents.SetRadius(100. + level)
+        self.continents.SetRadius(self.radius)
         self.actor.GetProperty().SetColor(0., 0., 0.)
+
+
+    def update(self, key):
+        pass
 
 
     def getActor(self):
