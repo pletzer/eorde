@@ -1,9 +1,9 @@
 import vtk
 
 class CallBack(object):
-    def __init__(self, pipelines, ren):
+    def __init__(self, pipelines, renWin):
         self.pipelines = pipelines
-        self.ren = ren
+        self.renWin = renWin
 
     def execute(self, obj, event):
         #print(obj.GetClassName(), "Event Id:", event)
@@ -11,7 +11,8 @@ class CallBack(object):
         key = obj.GetKeySym()
         for p in self.pipelines:
             p.update(key)
-        self.ren.Render()
+        print('rendering...')
+        self.renWin.Render()
 
 
 class Scene:
@@ -51,7 +52,7 @@ class Scene:
 
 
     def start(self):
-        self.callBack = CallBack(self.pipelines, self.ren)
+        self.callBack = CallBack(self.pipelines, self.renWin)
         for p in self.pipelines:
             self.ren.AddActor(p.getActor())
 

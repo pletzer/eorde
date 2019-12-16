@@ -12,6 +12,7 @@ class ColorCells:
 
         self.radius = 1.0 + 0.01 * level
         self.varStandardName = varStandardName
+        self.timeStep = 0
 
         # read the data 
         self.ncReader = NCReader(filename)
@@ -45,7 +46,8 @@ class ColorCells:
         self.pointArray = vtk.vtkDoubleArray()
         self.points = vtk.vtkPoints()
         self.sgrid = vtk.vtkStructuredGrid()
-        self.mapper = vtk.vtkDataSetMapper()
+        self.sgridGeomFilter = vtk.vtkStructuredGridGeometryFilter()
+        self.mapper = vtk.vtkPolyDataMapper()
         self.actor = vtk.vtkActor()
 
 
@@ -87,14 +89,18 @@ class ColorCells:
         self.sgrid.SetDimensions(self.nx1, self.ny1, 1)
         self.sgrid.SetPoints(self.points)
         self.sgrid.GetCellData().SetScalars(self.dataArray)
-        self.mapper.SetInputData(self.sgrid)
+        self.sgridGeomFilter.SetInputData(self.sgrid)
+        self.mapper.SetInputConnection(self.sgridGeomFilter.GetOutputPort())
         self.mapper.SetLookupTable(self.colormap.getLookupTable())
         self.mapper.UseLookupTableScalarRangeOn()
         self.actor.SetMapper(self.mapper)
 
 
-    def getDataAtTime(self, timeCount):
-        self.dataTimeSlice[self.timeIndexPos] = timeCount
+    def getDataAtTime(self, timeStep):
+        if self.timeIndexPos < 0:
+            # no time!
+            return self.ncVar[...]
+        self.dataTimeSlice[self.timeIndexPos] = timeStep
         return self.ncVar[self.dataTimeSlice]
 
 
@@ -112,31 +118,32 @@ class ColorCells:
     def getActor(self):
         return self.actor
 
-    def update(self):
-        pass
+    def update(self, key):
+        if key == 't':
+            # update time
+            self.data[:] = self.getDataAtTime(self.timeStep)
+            print(f'info: updating time step = {self.timeStep} min/max of data: {self.data.min()}/{self.data.max()}')
+            self.timeStep = (self.timeStep + 1) % self.numTimes
+            self.dataArray.Modified()
+        else:
+            print(f'Warning: not a valid key {key}')
+
 
 
 ###############################################################################
 
 def test():
+
+    from eoScene import Scene
     
     filename = '../data/tos_Omon_GFDL-CM4_historical_r1i1p1f1_gr_201001-201412.nc'
     varStandardName = 'sea_surface_temperature'
     c = ColorCells(filename=filename, varStandardName=varStandardName, level=0)
 
-    # render
-    ren = vtk.vtkRenderer()
-    renWin = vtk.vtkRenderWindow()
-    iren = vtk.vtkRenderWindowInteractor()
-    renWin.AddRenderer(ren)
-    iren.SetRenderWindow(renWin)
-
-    ren.SetBackground(0.8, 0.8, 0.7)
-
-    ren.AddActor(c.getActor())
-
-    renWin.Render()
-    iren.Start()
+    s = Scene()
+    s.setBackground(0.7, 0.7, 0.7)
+    s.addPipelines([c])
+    s.start()
 
 
 if __name__ == '__main__':

@@ -17,7 +17,7 @@ class Colormap:
         b = numpy.maximum(0., 1 - x)
         a = numpy.ones(x.shape, numpy.float64)
 
-        a[0] = 0.
+        a[0] = 1.
         a[-1] = 0.
 
         for i in range(n):
