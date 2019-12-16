@@ -42,7 +42,7 @@ class NCReader:
         lons = self.getLongitudes()
         lats = self.getLatitudes()
         if len(lons.shape) == 1:
-            lons, lats = numpy.meshgrid(lons, lats, indexing='ij')
+            lons, lats = numpy.meshgrid(lons, lats, indexing='xy')
         return lons, lats
 
 
@@ -77,6 +77,7 @@ class NCReader:
             if hasattr(v, 'standard_name') and v.standard_name == standard_name:
                 return v
         return res
+
 
 
 ###############################################################################

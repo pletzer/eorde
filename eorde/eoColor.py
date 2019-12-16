@@ -7,12 +7,11 @@ class Color(BasePointScalar):
 
     def __init__(self, level=1):
         super().__init__(level)
-        self.gridFilter    = vtk.vtkStructuredGridGeometryFilter()
+        #self.gridFilter    = vtk.vtkStructuredGridGeometryFilter()
 
         # connect
-        self.gridFilter.SetInputData(self.sgrid)
-        self.mapper.SetInputConnection(self.gridFilter.GetOutputPort())
-        self.actor.SetMapper(self.mapper)
+        #self.gridFilter.SetInputData(self.sgrid) #Connection(self.gridFilter.GetOutputPort())
+        #self.actor.SetMapper(self.mapper)
 
 
 ###############################################################################
@@ -23,11 +22,9 @@ def test():
     from eoNCReader import NCReader
 
     n = NCReader('../data/tos_Omon_GFDL-CM4_historical_r1i1p1f1_gr_201001-201412.nc')
-    nc = n.getNetCDFFileHandle()
-
 
     c = Color()
-    c.setNetCDFVariable(nc, n.getNetCDFVariable('sea_surface_temperature'))
+    c.setNetCDFVariable(n, 'sea_surface_temperature')
 
     s = Scene()
     s.setBackground(0.3, 0.3, 0.3)
