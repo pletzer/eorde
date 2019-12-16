@@ -11,14 +11,36 @@ class ColorCells:
     def __init__(self, filename, varStandardName, level=0):
 
         self.radius = 1.0 + 0.01 * level
+        self.varStandardName = varStandardName
 
         # read the data 
         self.ncReader = NCReader(filename)
-        print(self.ncReader)
         self.llons, self.llats = self.ncReader.get2DLonsLats()
+        self.ncVar = self.ncReader.getNetCDFVariable(varStandardName)
 
-        self.data = self.ncReader.getNetCDFVariable(varStandardName)[0,...]
-        print(f'data min/max = {self.data.min()}/{self.data.max()}')
+        # find the tiem index positiuon in self.ncVar
+        nc = self.ncReader.getNetCDFFileHandle()
+        self.timeIndexPos = -1
+        indx = 0
+        for dimName in self.ncVar.dimensions:
+            v = nc.variables[dimName]
+            sdnm = getattr(v, 'standard_name', '')
+            if sdnm == 'time':
+                self.timeIndexPos = indx
+                break
+            indx += 1
+        self.numTimes = self.ncVar.shape[self.timeIndexPos]
+        self.ndims = len(self.ncVar.shape)
+
+        # build data slice (seeting it initially to the first time step)
+        # slice(0, None) matcvhes to ":"
+        self.dataTimeSlice = [slice(0, None) for i in range(self.timeIndexPos)] + \
+                             [0] + \
+                             [slice(0, None) for i in range(self.timeIndexPos + 1, self.ndims)]
+
+
+        self.computeDataMinMax()
+        print(f'data min/max = {self.dataMin}/{self.dataMax}')
 
         self.pointArray = vtk.vtkDoubleArray()
         self.points = vtk.vtkPoints()
@@ -47,6 +69,8 @@ class ColorCells:
         self.pointArray.SetName('coordinates')
         self.pointArray.SetVoidArray(self.xyz, self.numPoints * 3, 1)
 
+        self.data = self.getDataAtTime(0)
+
         if self.data.dtype == 'float32':
             self.dataArray = vtk.vtkFloatArray()
         elif self.data.dtype == 'float64':
@@ -56,7 +80,7 @@ class ColorCells:
         self.dataArray.SetName(varStandardName)
         self.dataArray.SetVoidArray(self.data, self.numCells, 1)
 
-        self.colormap = Colormap(self.data.min(), self.data.max())
+        self.colormap = Colormap(self.dataMin, self.dataMax)
 
         # connect
         self.points.SetData(self.pointArray)
@@ -67,6 +91,22 @@ class ColorCells:
         self.mapper.SetLookupTable(self.colormap.getLookupTable())
         self.mapper.UseLookupTableScalarRangeOn()
         self.actor.SetMapper(self.mapper)
+
+
+    def getDataAtTime(self, timeCount):
+        self.dataTimeSlice[self.timeIndexPos] = timeCount
+        return self.ncVar[self.dataTimeSlice]
+
+
+    def computeDataMinMax(self):
+        self.dataMin = float('inf')
+        self.dataMax = -float('inf')
+        for i in range(self.numTimes):
+            d = self.getDataAtTime(i)
+            dlo = d.min()
+            dhi = d.max()
+            self.dataMin = min(self.dataMin, dlo)
+            self.dataMax = max(self.dataMax, dhi)
 
 
     def getActor(self):
