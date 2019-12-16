@@ -24,9 +24,9 @@ class Scene:
         self.camera = vtk.vtkCamera()
         self.camera.OrthogonalizeViewUp()
         self.camera.SetFocalPoint(0., 0., 0.)
-        self.camera.SetDistance(5.)
+        self.camera.SetDistance(15.)
 
-        self.ren.SetActiveCamera(self.camera)
+        #self.ren.SetActiveCamera(self.camera)
         self.renWin.AddRenderer(self.ren)
         self.iren.SetRenderWindow(self.renWin)
 
