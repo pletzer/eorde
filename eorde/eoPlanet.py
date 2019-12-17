@@ -3,7 +3,7 @@ import re
 
 class Planet:
 
-    def __init__(self, level=0, textureFile='../data/2k_earth_daymap.jpeg'):
+    def __init__(self, level=0, textureFile='../data/2k_earth_daymap.jpeg', shift=0.5):
 
         self.transf = vtk.vtkTransform()
         self.globe = vtk.vtkTexturedSphereSource()
@@ -11,10 +11,11 @@ class Planet:
 
 
         #self.transf.Scale(0.25, 1., 1.)
+        # may need to shift the picture to match the start longitude
+        self.transf.Translate(shift, 0., 0.)
         self.texture.SetTransform(self.transf)
         self.texture.SetInterpolate(1)
 
-        self.reader = None
         if re.search(r'jpe?g', textureFile.split('.')[-1]):
             self.reader = vtk.vtkJPEGReader()
         elif textureFile.split('.')[-1] == 'png':
@@ -33,7 +34,12 @@ class Planet:
 
         self.globe.SetThetaResolution(128)
         self.globe.SetPhiResolution(64)
-        self.globe.SetRadius(100. + level)
+        self.globe.SetRadius(1. + 0.01*level)
+
+
+    def update(self, key):
+        pass
+
 
     def getActor(self):
         return self.actor

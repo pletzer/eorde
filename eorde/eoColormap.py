@@ -9,20 +9,19 @@ class Colormap:
         self.lut.SetNumberOfTableValues(n)
         self.lut.SetTableRange(dmin, dmax)
 
-        x = numpy.linspace(0., 1., n)
-        r = numpy.maximum(0., x)
-        g = -2. *numpy.fabs((x - 0.5)) + 1.
-        b = numpy.maximum(0., 1 - x)
-        a = numpy.ones(x.shape, numpy.float64)
-
         for i in range(n):
-            self.lut.SetTableValue(i, r[i], g[i], b[i], a[i])
+            x = float(i)/float(n - 1)
+            r = max(0., x)
+            g = 1. - 2.*abs(x - 0.5)
+            b = max(0., 1 - x)
+            a = 1.
+            self.lut.SetTableValue(i, r, g, b, a)
 
         self.lut.UseBelowRangeColorOn()
         self.lut.UseAboveRangeColorOn()
 
         self.lut.SetBelowRangeColor(0., 0., 0., 1.)
-        self.lut.SetAboveRangeColor(1., 1., 1., 1.)
+        self.lut.SetAboveRangeColor(1., 1., 1., 0.)
         self.lut.Build()
 
     def getLookupTable(self):

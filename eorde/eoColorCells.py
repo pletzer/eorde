@@ -122,6 +122,7 @@ class ColorCells:
     def getActor(self):
         return self.actor
 
+
     def update(self, key):
         if key == 't':
             # update time
@@ -129,8 +130,6 @@ class ColorCells:
             print(f'info: updating time step = {self.timeStep} min/max of data: {self.data.min()}/{self.data.max()}')
             self.timeStep = (self.timeStep + 1) % self.numTimes
             self.dataArray.Modified()
-        else:
-            print(f'Warning: not a valid key {key}')
 
 
 
@@ -141,18 +140,20 @@ def test():
     from eoScene import Scene
     from eoContinents import Continents
     from eoDateTimes import DateTimes
+    from eoPlanet import Planet
     
     filename = '../data/tos_Omon_GFDL-CM4_historical_r1i1p1f1_gr_201001-201412.nc'
     varStandardName = 'sea_surface_temperature'
     color = ColorCells(filename=filename, varStandardName=varStandardName, level=0)
 
+    planet = Planet(level=0)
     continents = Continents(level=1)
 
     dateTimes = DateTimes(dts=color.getDateTimes(), pos=(800, 900), size=52, color=(1., 0., 0.))
 
     s = Scene()
     s.setBackground(0.7, 0.7, 0.7)
-    s.addPipelines([color, continents, dateTimes])
+    s.addPipelines([planet, color, continents, dateTimes])
     s.start()
 
 
