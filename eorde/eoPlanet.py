@@ -32,8 +32,8 @@ class Planet:
         self.texture.SetInputConnection(self.reader.GetOutputPort())
         self.reader.SetFileName(textureFile)
 
-        self.globe.SetThetaResolution(128)
-        self.globe.SetPhiResolution(64)
+        self.globe.SetThetaResolution(256)
+        self.globe.SetPhiResolution(128)
         self.globe.SetRadius(1. + 0.01*level)
 
 

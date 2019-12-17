@@ -3,7 +3,7 @@ import vtk
 
 class DateTimes:
 
-    def __init__(self, dts, pos=(0.8, 0.9), size=14, color=(0., 0., 0.)):
+    def __init__(self, dts, pos=(0.6, 0.9), size=14, color=(0., 0., 0.)):
 
         self.dateTimes = dts
         self.actor = vtk.vtkTextActor()
@@ -18,7 +18,7 @@ class DateTimes:
     def update(self, key):
         if key == 't':
             dt = self.dateTimes[self.stepIndex]
-            txt = f'{dt.year}-{dt.month}-{dt.day} ({self.stepIndex})'
+            txt = f'{dt.year}-{dt.month:02d}-{dt.day:02d} {self.stepIndex:4d}'
             print(txt)
             self.actor.SetInput(txt)
             self.actor.Modified()

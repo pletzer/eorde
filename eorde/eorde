@@ -27,13 +27,15 @@ def main(ar):
     filename = args.filename
     varStandardName = args.standard_name
 
-    color = ColorCells(filename=filename, varStandardName=varStandardName, level=0)
-
     planet = Planet(level=0)
 
-    dateTimes = DateTimes(dts=color.getDateTimes(), pos=(800, 900), size=52, color=(0.2, 0.2, 0.2))
+    color = ColorCells(filename=filename, varStandardName=varStandardName, level=1)
+
+
+    dateTimes = DateTimes(dts=color.getDateTimes(), pos=(0.6, 0.9), size=52, color=(0.2, 0.2, 0.2))
 
     s = Scene()
+    s.setWindowSize(1260, 960)
     s.setBackground(0.7, 0.7, 0.7)
     s.addPipelines([planet, color, dateTimes])
     s.start()
