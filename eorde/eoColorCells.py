@@ -39,17 +39,6 @@ class ColorCells:
                              [slice(0, None) for i in range(self.timeIndexPos + 1, self.ndims)]
 
 
-        self.computeDataMinMax()
-        print(f'data min/max = {self.dataMin}/{self.dataMax}')
-
-        self.pointArray = vtk.vtkDoubleArray()
-        self.points = vtk.vtkPoints()
-        self.sgrid = vtk.vtkStructuredGrid()
-        self.sgridGeomFilter = vtk.vtkStructuredGridGeometryFilter()
-        self.mapper = vtk.vtkPolyDataMapper()
-        self.actor = vtk.vtkActor()
-
-
         # construct the mesh
         self.nx1, self.ny1 = self.llons.shape[::-1]
         self.numPoints = self.nx1 * self.ny1
@@ -66,9 +55,7 @@ class ColorCells:
         ny = self.ny1 - 1
         self.numCells = nx * ny
 
-        self.pointArray.SetNumberOfComponents(3)
-        self.pointArray.SetName('coordinates')
-        self.pointArray.SetVoidArray(self.xyz, self.numPoints * 3, 1)
+        self.buildBasePipeline()
 
         self.data = self.getDataAtTime(0)
 
@@ -81,16 +68,32 @@ class ColorCells:
         self.dataArray.SetName(varStandardName)
         self.dataArray.SetVoidArray(self.data, self.numCells, 1)
 
+        self.sgrid.GetCellData().SetScalars(self.dataArray)
+
+        self.computeDataMinMax()
+        print(f'data min/max = {self.dataMin}/{self.dataMax}')
         self.colormap = Colormap(self.dataMin, self.dataMax)
+        self.mapper.SetLookupTable(self.colormap.getLookupTable())
+
+
+    def buildBasePipeline(self):
+        self.pointArray = vtk.vtkDoubleArray()
+        self.points = vtk.vtkPoints()
+        self.sgrid = vtk.vtkStructuredGrid()
+        self.sgridGeomFilter = vtk.vtkStructuredGridGeometryFilter()
+        self.mapper = vtk.vtkPolyDataMapper()
+        self.actor = vtk.vtkActor()
+
+        self.pointArray.SetNumberOfComponents(3)
+        self.pointArray.SetName('coordinates')
+        self.pointArray.SetVoidArray(self.xyz, self.numPoints * 3, 1)
 
         # connect
         self.points.SetData(self.pointArray)
         self.sgrid.SetDimensions(self.nx1, self.ny1, 1)
         self.sgrid.SetPoints(self.points)
-        self.sgrid.GetCellData().SetScalars(self.dataArray)
         self.sgridGeomFilter.SetInputData(self.sgrid)
         self.mapper.SetInputConnection(self.sgridGeomFilter.GetOutputPort())
-        self.mapper.SetLookupTable(self.colormap.getLookupTable())
         self.mapper.UseLookupTableScalarRangeOn()
         self.actor.SetMapper(self.mapper)
 
