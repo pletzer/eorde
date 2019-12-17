@@ -17,14 +17,13 @@ class ColorCells:
         # read the data 
         self.ncReader = NCReader(filename)
         self.llons, self.llats = self.ncReader.get2DLonsLats()
-        self.ncVar = self.ncReader.getNetCDFVariable(varStandardName)
+        self.ncVar = self.ncReader.getNetCDFVariableByStandardName(varStandardName)
 
         # find the tiem index positiuon in self.ncVar
-        nc = self.ncReader.getNetCDFFileHandle()
         self.timeIndexPos = -1
         indx = 0
         for dimName in self.ncVar.dimensions:
-            v = nc.variables[dimName]
+            v = self.ncReader.getNetCDFVariableByName(dimName)
             sdnm = getattr(v, 'standard_name', '')
             if sdnm == 'time':
                 self.timeIndexPos = indx

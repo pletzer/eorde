@@ -22,10 +22,6 @@ class NCReader:
                 self.timeName = vn
 
 
-    def getNetCDFFileHandle(self):
-        return self.nc
-
-
     def getLongitudes(self):
         x = self.nc.variables[self.lonBoundsName][:, 0]
         x1 = self.nc.variables[self.lonBoundsName][-1, 1]
@@ -70,14 +66,19 @@ class NCReader:
         return dts
 
 
-    def getNetCDFVariable(self, standard_name):
+    def getNetCDFVariableByStandardName(self, standard_name):
         res = None
         for vn in self.nc.variables:
             v = self.nc.variables[vn]
-            if hasattr(v, 'standard_name') and v.standard_name == standard_name:
+            stdName = getattr(v, 'standard_name', '')
+            lngName = getattr(v, 'long_name', '')
+            if stdName == standard_name or lngName == standard_name:
                 return v
         return res
 
+
+    def getNetCDFVariableByName(self, name):
+        return self.nc.variables[name]
 
 
 ###############################################################################
@@ -91,7 +92,7 @@ def test():
     llons, llats = n.get2DLonsLats()
     dts = n.getDateTimes()
     print(f'times: {dts}')
-    var = n.getNetCDFVariable('sea_surface_temperature')
+    var = n.getNetCDFVariableByStandardName('sea_surface_temperature')
     print(f'var tos: {var}')
 
 if __name__ == '__main__':
