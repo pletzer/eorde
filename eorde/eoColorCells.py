@@ -19,7 +19,7 @@ class ColorCells:
         self.llons, self.llats = self.ncReader.get2DLonsLats()
         self.ncVar = self.ncReader.getNetCDFVariableByStandardName(varStandardName)
 
-        # find the tiem index positiuon in self.ncVar
+        # find the time index positiuon in self.ncVar
         self.timeIndexPos = -1
         indx = 0
         for dimName in self.ncVar.dimensions:

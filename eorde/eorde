@@ -12,7 +12,7 @@ from eoScene import Scene
 def main(ar):
 
     parser = argparse.ArgumentParser(description='Visualize earth data')
-    parser.add_argument('-s', dest='standard_name', default='', help='Select variable by standard name')
+    parser.add_argument('-c', dest='cellVarStdName', default='', help='Select cell variable by standard name')
     parser.add_argument('-f', dest='filename', default='', help='File name')
     args = parser.parse_args()
 
@@ -20,17 +20,15 @@ def main(ar):
         print('ERROR: must supply a file name')
         sys.exit(1)
 
-    if not len(args.standard_name):
+    if not len(args.cellVarStdName):
         print('ERROR: must select a variable by its standard name')
         sys.exit(2)
 
     filename = args.filename
-    varStandardName = args.standard_name
 
     planet = Planet(level=0)
 
-    color = ColorCells(filename=filename, varStandardName=varStandardName, level=1)
-
+    color = ColorCells(filename=filename, varStandardName=args.cellVarStdName, level=1)
 
     dateTimes = DateTimes(dts=color.getDateTimes(), pos=(0.6, 0.9), size=52, color=(0.2, 0.2, 0.2))
 
