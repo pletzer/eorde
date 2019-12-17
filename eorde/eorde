@@ -4,79 +4,43 @@ import argparse
 import sys
 import netCDF4
 import numpy
-from eoNCReader import NCReader
-from eoSphere import Sphere
-from eoContinents import Continents
-from eoContours import Contours
-from eoColor import Color
+from eoPlanet import Planet
+from eoColorCells import ColorCells
+from eoDateTimes import DateTimes
 from eoScene import Scene
 
-parser = argparse.ArgumentParser(description='Visualize earth data')
-parser.add_argument('--contours', default='', help='Show contours')
-parser.add_argument('--color', default='', help='Plot color')
-parser.add_argument('--continents', action='store_true', help='Show continents')
-parser.add_argument('-f', dest='filename', default='', help='File name')
-args = parser.parse_args()
+def main(ar):
 
-if not len(args.filename):
-    print('ERROR: must supply a file name')
-    sys.exit(1)
+    parser = argparse.ArgumentParser(description='Visualize earth data')
+    parser.add_argument('-s', dest='standard_name', default='', help='Select variable by standard name')
+    parser.add_argument('-f', dest='filename', default='', help='File name')
+    args = parser.parse_args()
 
-# read the file
-reader = NCReader(args.filename)
-lons = reader.getLongitudes()
-lats = reader.getLatitudes()
-dts = reader.getDateTimes()
+    if not len(args.filename):
+        print('ERROR: must supply a file name')
+        sys.exit(1)
 
-pipelines = []
-
-if args.continents:
-    sphr = Sphere(level=0)
-    cnts = Continents(level=1)
-    pipelines += [sphr, cnts]
-
-if args.contours:
-    ctrs = Contours(level=2)
-    lons2d, lats2d = lons, lats
-    if len(lons.shape) == 1:
-        lons2d, lats2d = ctrs.get2DLonsLats(lons, lats)
-    ctrs.setPoints(lons=lons2d, lats=lats2d)
-    data = reader.getVariable(args.contours)
-    if data is not None:
-        # for the time being
-        d = data[0,...]
-        dMin, dMax = d.min(), d.max()
-        vals = numpy.linspace(dMin, dMax, 21)
-        ctrs.setContourValues(vals)
-        ctrs.setData(d)
-    else:
-        print(f'ERROR: no variable with standard_name {args.contours}')
+    if not len(args.standard_name):
+        print('ERROR: must select a variable by its standard name')
         sys.exit(2)
-    pipelines.append(ctrs)
 
-if args.color:
-    clr = Color(level=0)
-    lons2d, lats2d = lons, lats
-    if len(lons.shape) == 1:
-        lons2d, lats2d = clr.get2DLonsLats(lons, lats)
-    clr.setPoints(lons=lons2d, lats=lats2d)
-    data = reader.getVariable(args.color)
-    if data is not None:
-        # for the time being
-        d = data[0,...]
-        dMin, dMax = d.min(), d.max()
-        clr.setData(d)
-    else:
-        print(f'ERROR: no variable with standard_name {args.color}')
-        sys.exit(2)
-    pipelines.append(clr)
+    filename = args.filename
+    varStandardName = args.standard_name
+
+    color = ColorCells(filename=filename, varStandardName=varStandardName, level=0)
+
+    planet = Planet(level=0)
+
+    dateTimes = DateTimes(dts=color.getDateTimes(), pos=(800, 900), size=52, color=(0.2, 0.2, 0.2))
+
+    s = Scene()
+    s.setBackground(0.7, 0.7, 0.7)
+    s.addPipelines([planet, color, dateTimes])
+    s.start()
 
 
-scn = Scene()
-scn.addPipelines(pipelines)
-scn.start()
-
-
+if __name__ == '__main__':
+    main(sys.argv)
 
 
 
