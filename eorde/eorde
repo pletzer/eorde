@@ -6,6 +6,7 @@ import netCDF4
 import numpy
 from eoPlanet import Planet
 from eoColorCells import ColorCells
+from eoColorbar import Colorbar
 from eoDateTimes import DateTimes
 from eoScene import Scene
 
@@ -30,12 +31,14 @@ def main(ar):
 
     color = ColorCells(filename=filename, varStandardName=args.cellVarStdName, level=1)
 
+    colorbar = Colorbar(color.getLookupTable())
+
     dateTimes = DateTimes(dts=color.getDateTimes(), pos=(0.6, 0.9), size=52, color=(0.2, 0.2, 0.2))
 
     s = Scene()
     s.setWindowSize(1260, 960)
     s.setBackground(0.7, 0.7, 0.7)
-    s.addPipelines([planet, color, dateTimes])
+    s.addPipelines([planet, color, colorbar, dateTimes])
     s.start()
 
 

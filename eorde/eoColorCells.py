@@ -98,6 +98,10 @@ class ColorCells:
         self.actor.SetMapper(self.mapper)
 
 
+    def getLookupTable(self):
+        return self.colormap.getLookupTable()
+
+
     def getDateTimes(self):
         return self.ncReader.getDateTimes()
 
