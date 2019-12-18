@@ -5,14 +5,13 @@ from eoColormap import Colormap
 from eoNCReader import NCReader
 
 
-class Contours:
+class ColorPoints:
 
 
     def __init__(self, filename, varStandardName, level=0):
 
         self.radius = 1.0 + 0.01 * level
         self.varStandardName = varStandardName
-        self.numContours = 5
         self.timeStep = 0
 
         # read the data 
@@ -72,12 +71,10 @@ class Contours:
         self.sgrid.GetCellData().SetScalars(self.dataArray)
 
         self.computeDataMinMax()
-        self.contour.GenerateValues(self.numContours, self.dataMin, self.dataMax)
         print(f'data min/max = {self.dataMin}/{self.dataMax}')
         self.colormap = Colormap(self.dataMin, self.dataMax)
         self.mapper.SetLookupTable(self.colormap.getLookupTable())
 
-        # convert the cell data to point data
         self.c2p.Update()
 
 
@@ -85,12 +82,12 @@ class Contours:
         self.pointArray = vtk.vtkDoubleArray()
         self.points = vtk.vtkPoints()
         self.sgrid = vtk.vtkStructuredGrid()
-        self.c2p = vtk.vtkCellDataToPointData()
         self.sgridGeomFilter = vtk.vtkStructuredGridGeometryFilter()
-        self.contour = vtk.vtkContourFilter()
+        self.c2p = vtk.vtkCellDataToPointData()
         self.mapper = vtk.vtkPolyDataMapper()
         self.actor = vtk.vtkActor()
 
+        self.c2p.PassCellDataOn()
         self.pointArray.SetNumberOfComponents(3)
         self.pointArray.SetName('coordinates')
         self.pointArray.SetVoidArray(self.xyz, self.numPoints * 3, 1)
@@ -99,11 +96,9 @@ class Contours:
         self.points.SetData(self.pointArray)
         self.sgrid.SetDimensions(self.nx1, self.ny1, 1)
         self.sgrid.SetPoints(self.points)
-        self.c2p.PassCellDataOn()
         self.c2p.SetInputData(self.sgrid)
         self.sgridGeomFilter.SetInputData(self.c2p.GetOutput())
-        self.contour.SetInputConnection(self.sgridGeomFilter.GetOutputPort()) # Connection(self.sgridGeomFilter.GetOutputPort()) #Connection(self.cell2Points.GetOutputPort())
-        self.mapper.SetInputConnection(self.contour.GetOutputPort())
+        self.mapper.SetInputConnection(self.sgridGeomFilter.GetOutputPort())
         self.mapper.UseLookupTableScalarRangeOn()
         self.actor.SetMapper(self.mapper)
 
@@ -149,6 +144,7 @@ class Contours:
             self.c2p.Modified()
 
 
+
 ###############################################################################
 
 def test():
@@ -156,19 +152,20 @@ def test():
     from eoScene import Scene
     from eoContinents import Continents
     from eoDateTimes import DateTimes
-    from eoColorCells import ColorCells
+    from eoPlanet import Planet
     
     filename = '../data/tos_Omon_GFDL-CM4_historical_r1i1p1f1_gr_201001-201412.nc'
     varStandardName = 'sea_surface_temperature'
 
-    color = ColorCells(filename=filename, varStandardName=varStandardName, level=1)
-    continents = Continents(level=1)
-    contours = Contours(filename=filename, varStandardName=varStandardName, level=3)
-    dateTimes = DateTimes(dts=contours.getDateTimes(), pos=(800, 900), size=52, color=(1., 0., 0.))
+    planet = Planet(level=0)
+    color = ColorPoints(filename=filename, varStandardName=varStandardName, level=1)
+    continents = Continents(level=2)
+
+    dateTimes = DateTimes(dts=color.getDateTimes(), pos=(800, 900), size=52, color=(1., 0., 0.))
 
     s = Scene()
     s.setBackground(0.7, 0.7, 0.7)
-    s.addPipelines([continents, contours, dateTimes])
+    s.addPipelines([planet, color, continents, dateTimes])
     s.start()
 
 

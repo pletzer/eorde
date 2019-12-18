@@ -6,6 +6,8 @@ import netCDF4
 import numpy
 from eoPlanet import Planet
 from eoColorCells import ColorCells
+from eoColorPoints import ColorPoints
+from eoContours import Contours
 from eoColorbar import Colorbar
 from eoDateTimes import DateTimes
 from eoScene import Scene
@@ -13,7 +15,9 @@ from eoScene import Scene
 def main(ar):
 
     parser = argparse.ArgumentParser(description='Visualize earth data')
-    parser.add_argument('-c', dest='cellVarStdName', default='', help='Select cell variable by standard name')
+    parser.add_argument('-c', dest='cellStdName', default='', help='Color cell variable')
+    parser.add_argument('-p', dest='pointStdName', default='', help='Color point variable')
+    parser.add_argument('-i', dest='isoStdName', default='', help='Show isolines of variable')
     parser.add_argument('-f', dest='filename', default='', help='File name')
     args = parser.parse_args()
 
@@ -21,24 +25,39 @@ def main(ar):
         print('ERROR: must supply a file name')
         sys.exit(1)
 
-    if not len(args.cellVarStdName):
-        print('ERROR: must select a variable by its standard name')
-        sys.exit(2)
-
     filename = args.filename
 
     planet = Planet(level=0)
 
-    color = ColorCells(filename=filename, varStandardName=args.cellVarStdName, level=1)
+    pipelines = [planet]
 
-    colorbar = Colorbar(color.getLookupTable())
+    color = None
+    if args.cellStdName:
+        cellColor = ColorCells(filename=filename, varStandardName=args.cellStdName, level=1)
+        pipelines.append(cellColor)
+        color = cellColor
+    elif args.pointStdName:
+        pointColor = ColorPoints(filename=filename, varStandardName=args.pointStdName, level=1)
+        pipelines.append(pointColor)
+        color = pointColor
 
-    dateTimes = DateTimes(dts=color.getDateTimes(), pos=(0.6, 0.9), size=52, color=(0.2, 0.2, 0.2))
+    if args.isoStdName:
+        contour = Contours(filename=filename, varStandardName=args.isoStdName, level=2)
+        pipelines.append(contour)
+    
+
+    if color:
+        colorbar = Colorbar(color.getLookupTable())
+        pipelines.append(colorbar)
+
+    if color:
+        dateTimes = DateTimes(dts=color.getDateTimes(), pos=(0.6, 0.9), size=52, color=(0.2, 0.2, 0.2))
+        pipelines.append(dateTimes)
 
     s = Scene()
     s.setWindowSize(1260, 960)
     s.setBackground(0.7, 0.7, 0.7)
-    s.addPipelines([planet, color, colorbar, dateTimes])
+    s.addPipelines(pipelines)
     s.start()
 
 
