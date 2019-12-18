@@ -43,7 +43,9 @@ def main(ar):
 
     if args.isoStdName:
         contour = Contours(filename=filename, varStandardName=args.isoStdName, level=2)
+        contour.setLineThickness(2)
         pipelines.append(contour)
+        color = contour
     
 
     if color:

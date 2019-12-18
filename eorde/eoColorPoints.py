@@ -138,7 +138,7 @@ class ColorPoints:
         if key == 't':
             # update time
             self.data[:] = self.getDataAtTime(self.timeStep)
-            print(f'info: updating time step = {self.timeStep} min/max of data: {self.data.min()}/{self.data.max()}')
+            print(f'info: updating time step = {self.timeStep}')
             self.timeStep = (self.timeStep + 1) % self.numTimes
             self.c2p.Update()
             self.c2p.Modified()

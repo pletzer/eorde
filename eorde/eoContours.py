@@ -12,7 +12,7 @@ class Contours:
 
         self.radius = 1.0 + 0.01 * level
         self.varStandardName = varStandardName
-        self.numContours = 5
+        self.numContours = 21
         self.timeStep = 0
 
         # read the data 
@@ -135,6 +135,10 @@ class Contours:
             self.dataMax = max(self.dataMax, dhi)
 
 
+    def setLineThickness(self, w):
+        self.actor.GetProperty().SetLineWidth(w)
+
+
     def getActor(self):
         return self.actor
 
@@ -143,7 +147,7 @@ class Contours:
         if key == 't':
             # update time
             self.data[:] = self.getDataAtTime(self.timeStep)
-            print(f'info: updating time step = {self.timeStep} min/max of data: {self.data.min()}/{self.data.max()}')
+            print(f'info: updating time step = {self.timeStep}')
             self.timeStep = (self.timeStep + 1) % self.numTimes
             self.c2p.Update()
             self.c2p.Modified()

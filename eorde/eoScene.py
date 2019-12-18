@@ -11,7 +11,6 @@ class CallBack(object):
         key = obj.GetKeySym()
         for p in self.pipelines:
             p.update(key)
-        print('rendering...')
         self.renWin.Render()
 
 
