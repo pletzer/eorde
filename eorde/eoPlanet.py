@@ -1,7 +1,7 @@
 import vtk
 import re
 
-class Planet:
+class Planet(object):
 
     def __init__(self, level=0, textureFile='../data/2k_earth_daymap.jpeg', shift=0.5):
 
@@ -47,7 +47,7 @@ class Planet:
 ###############################################################################
 
 def test():
-    from eoScene import Scene
+    from eorde.eoScene import Scene
     p = Planet()
     s = Scene()
     s.addPipelines([p])

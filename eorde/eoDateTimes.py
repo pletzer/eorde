@@ -1,7 +1,7 @@
 import vtk
 
 
-class DateTimes:
+class DateTimes(object):
 
     def __init__(self, dts, pos=(0.6, 0.9), size=14, color=(0., 0., 0.)):
 
@@ -31,7 +31,7 @@ class DateTimes:
 ###############################################################################
 
 def test():
-    from eoScene import Scene
+    from eorde.eoScene import Scene
     from datetime import datetime
 
     dts = [datetime(year=2019, month=1, day=1), datetime(year=2019, month=1, day=2)]

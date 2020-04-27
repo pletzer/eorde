@@ -2,7 +2,7 @@ import netCDF4
 import datetime
 import numpy
 
-class NCReader:
+class NCReader(object):
 
     def __init__(self, filename):
         self.EPS = 1.23e-10

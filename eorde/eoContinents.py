@@ -1,7 +1,7 @@
 import vtk
 
 
-class Continents:
+class Continents(object):
 
     def __init__(self, level=0):
 
@@ -29,7 +29,7 @@ class Continents:
 ###############################################################################
 
 def test():
-    from eoScene import Scene
+    from eorde.eoScene import Scene
     c = Continents(level=1)
     s = Scene()
     s.addPipelines([c])

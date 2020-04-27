@@ -1,11 +1,11 @@
 import vtk
 import netCDF4
 import numpy
-from eoColormap import Colormap
-from eoNCReader import NCReader
+from eorde.eoColormap import Colormap
+from eorde.eoNCReader import NCReader
 
 
-class Contours:
+class Contours(object):
 
 
     def __init__(self, filename, varStandardName, level=0):
@@ -157,10 +157,10 @@ class Contours:
 
 def test():
 
-    from eoScene import Scene
-    from eoContinents import Continents
-    from eoDateTimes import DateTimes
-    from eoColorCells import ColorCells
+    from eorde.eoScene import Scene
+    from eorde.eoContinents import Continents
+    from eorde.eoDateTimes import DateTimes
+    from eorde.eoColorCells import ColorCells
     
     filename = '../data/tos_Omon_GFDL-CM4_historical_r1i1p1f1_gr_201001-201412.nc'
     varStandardName = 'sea_surface_temperature'

@@ -1,7 +1,7 @@
 import vtk
 
 
-class Colorbar:
+class Colorbar(object):
 
     def __init__(self, lookupTable, pos=(0.8, 0.2), size=14):
 
@@ -22,7 +22,7 @@ class Colorbar:
 ###############################################################################
 
 def test():
-    from eoScene import Scene
+    from eorde.eoScene import Scene
 
     lut = vtk.vtkLookupTable()
     lut.SetHueRange(0.667, 0.)
