@@ -1,0 +1,4 @@
+include eorde/data/*.nc
+include eorde/data/*.jpg
+include eorde/data/*.jpeg
+include eorde/data/*.png

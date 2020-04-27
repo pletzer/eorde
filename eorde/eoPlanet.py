@@ -1,9 +1,14 @@
 import vtk
 import re
+import pkg_resources
+
+TEXTURE = pkg_resources.resource_filename('eorde', 'data/2k_earth_daymap.jpeg')
 
 class Planet(object):
 
-    def __init__(self, level=0, textureFile='../data/2k_earth_daymap.jpeg', shift=0.5):
+    def __init__(self, level=0, 
+                 textureFile=TEXTURE,
+                 shift=0.5):
 
         self.transf = vtk.vtkTransform()
         self.globe = vtk.vtkTexturedSphereSource()

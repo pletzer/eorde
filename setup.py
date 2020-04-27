@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="eorde",
-    version="0.0.1",
+    version="0.0.2",
     author="Alexander Pletzer",
     author_email="alexander at gokliya dot net",
     description="A VTK based app that plots fields on the Earth",
@@ -21,4 +21,5 @@ setuptools.setup(
     python_requires='>=3.6',
     scripts=['eorde/eorde'],
     install_requires=['numpy', 'netCDF4', 'vtk',],
+    include_package_data=True,
 )
