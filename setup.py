@@ -7,7 +7,7 @@ setuptools.setup(
     name="eorde",
     version="0.0.2",
     author="Alexander Pletzer",
-    author_email="alexander at gokliya dot net",
+    author_email="alexander@gokliya.net",
     description="A VTK based app that plots fields on the Earth",
     long_description=long_description,
     long_description_content_type="text/markdown",
