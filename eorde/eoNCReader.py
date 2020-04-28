@@ -5,40 +5,86 @@ import numpy
 class NCReader(object):
 
     def __init__(self, filename):
-        self.EPS = 1.23e-10
+
+        # we're after lat lon bounds (we cannot take the lats and lons as this would leave us with a gap)
         self.lonBoundsName = ''
+        self.lonName = ''
         self.latBoundsName = ''
+        self.latName = ''
         self.timeName = ''
         self.nc = netCDF4.Dataset(filename)
 
         for vn in self.nc.variables:
             v = self.nc.variables[vn]
-            longName = getattr(v, 'long_name', '').lower().strip()
-            if longName == 'longitude bounds':
+            stdName = (getattr(v, 'standard_name', '') or getattr(v, 'long_name', '')).lower().strip()
+            if stdName == 'longitude bounds':
                 self.lonBoundsName = vn
-            elif longName.lower().strip() == 'latitude bounds':
+            elif stdName == 'longitude':
+                self.lonName = vn
+            elif stdName == 'latitude bounds':
                 self.latBoundsName = vn
-            elif longName == 'time':
+            elif stdName == 'latitude':
+                self.latName = vn
+            elif stdName == 'time':
                 self.timeName = vn
+
+        # in some cases the bounds don't have a standard name and instead the 
+        # coords had a bounds attribute that refers to the bounds
+        if not self.lonBoundsName and self.lonName:
+            v = self.nc.variables[self.lonName]
+            self.lonBoundsName = getattr(v, 'bounds', '')
+        if not self.latBoundsName and self.latName:
+            v = self.nc.variables[self.latName]
+            self.latBoundsName = getattr(v, 'bounds', '')
 
 
     def getLongitudes(self):
-        x = self.nc.variables[self.lonBoundsName][:, 0]
-        x1 = self.nc.variables[self.lonBoundsName][-1, 1]
-        return numpy.append(x, x1)
+        if self.lonBoundsName:
+            v = self.nc.variables[self.lonBoundsName]
+            if len(v.shape) == 2:
+                x = v[:, 0]
+                x1 = v[-1, 1]
+                return numpy.append(x, x1)
+            elif len(v.shape) == 3:
+                # add one to the number of cells
+                shp = numpy.array(v[:, :, 0].shape) + numpy.array((1, 1))
+                x = numpy.zeros(shp, numpy.float64)
+                x[:-1, :-1] = v[:, :, 0]
+                x[-1, :-1] = v[-1, :, 1]
+                x[-1, -1] = v[-1, -1, 2]
+                x[:-1, -1] = v[:, -1, 3]
+                return x
+        # failure
+        return []
 
 
     def getLatitudes(self):
-        y = self.nc.variables[self.latBoundsName][:, 0]
-        y1 = self.nc.variables[self.latBoundsName][-1, 1]
-        return numpy.append(y, y1)
+        if self.latBoundsName:
+            v = self.nc.variables[self.latBoundsName]
+            if len(v.shape) == 2:
+                x = v[:, 0]
+                x1 = v[-1, 1]
+                return numpy.append(x, x1)
+            elif len(v.shape) == 3:
+                # add one to the number of cells
+                shp = numpy.array(v[:, :, 0].shape) + numpy.array((1, 1))
+                y = numpy.zeros(shp, numpy.float64)
+                y[:-1, :-1] = v[:, :, 0]
+                y[-1, :-1] = v[-1, :, 1]
+                y[-1, -1] = v[-1, -1, 2]
+                y[:-1, -1] = v[:, -1, 3]
+                return y
+        # failure
+        return []
 
 
     def get2DLonsLats(self):
         lons = self.getLongitudes()
         lats = self.getLatitudes()
         if len(lons.shape) == 1:
+            # 1d arrays
             lons, lats = numpy.meshgrid(lons, lats, indexing='xy')
+        # already 2d arrays
         return lons, lats
 
 
@@ -70,9 +116,8 @@ class NCReader(object):
         res = None
         for vn in self.nc.variables:
             v = self.nc.variables[vn]
-            stdName = getattr(v, 'standard_name', '')
-            lngName = getattr(v, 'long_name', '')
-            if stdName == standard_name or lngName == standard_name:
+            stdName = getattr(v, 'standard_name', '') or getattr(v, 'long_name', '')
+            if stdName:
                 return v
         return res
 
@@ -83,8 +128,8 @@ class NCReader(object):
 
 ###############################################################################
 
-def test():
-    n = NCReader('../data/tos_Omon_GFDL-CM4_historical_r1i1p1f1_gr_201001-201412.nc')
+def test(filename):
+    n = NCReader(filename)
     lons = n.getLongitudes()
     print(f'longitudes: {lons}')
     lats = n.getLatitudes()
@@ -96,4 +141,5 @@ def test():
     print(f'var tos: {var}')
 
 if __name__ == '__main__':
-    test()
+    test('data/sos_Omon_CESM2-WACCM_historical_r1i1p1f1_gn_185001-201412.nc')
+    test('data/tos_Omon_GFDL-CM4_historical_r1i1p1f1_gr_201001-201412.nc')
