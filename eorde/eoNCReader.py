@@ -42,18 +42,9 @@ class NCReader(object):
         if self.lonBoundsName:
             v = self.nc.variables[self.lonBoundsName]
             if len(v.shape) == 2:
-                x = v[:, 0]
-                x1 = v[-1, 1]
-                return numpy.append(x, x1)
+                return self._getPointsFrom1DBounds(v)
             elif len(v.shape) == 3:
-                # add one to the number of cells
-                shp = numpy.array(v[:, :, 0].shape) + numpy.array((1, 1))
-                x = numpy.zeros(shp, numpy.float64)
-                x[:-1, :-1] = v[:, :, 0]
-                x[-1, :-1] = v[-1, :, 1]
-                x[-1, -1] = v[-1, -1, 2]
-                x[:-1, -1] = v[:, -1, 3]
-                return x
+                return self._getPointsFrom2DBounds(v)
         # failure
         return []
 
@@ -62,18 +53,9 @@ class NCReader(object):
         if self.latBoundsName:
             v = self.nc.variables[self.latBoundsName]
             if len(v.shape) == 2:
-                x = v[:, 0]
-                x1 = v[-1, 1]
-                return numpy.append(x, x1)
+                return self._getPointsFrom1DBounds(v)
             elif len(v.shape) == 3:
-                # add one to the number of cells
-                shp = numpy.array(v[:, :, 0].shape) + numpy.array((1, 1))
-                y = numpy.zeros(shp, numpy.float64)
-                y[:-1, :-1] = v[:, :, 0]
-                y[-1, :-1] = v[-1, :, 1]
-                y[-1, -1] = v[-1, -1, 2]
-                y[:-1, -1] = v[:, -1, 3]
-                return y
+                return self._getPointsFrom2DBounds(v)
         # failure
         return []
 
@@ -117,13 +99,31 @@ class NCReader(object):
         for vn in self.nc.variables:
             v = self.nc.variables[vn]
             stdName = getattr(v, 'standard_name', '') or getattr(v, 'long_name', '')
-            if stdName:
+            if stdName == standard_name:
                 return v
         return res
 
 
     def getNetCDFVariableByName(self, name):
         return self.nc.variables[name]
+
+
+    def _getPointsFrom1DBounds(self, v):
+        x = numpy.zeros([v.shape[0] + 1], numpy.float64)
+        x[:-1] = v[:, 0]
+        x[-1] = v[-1, 1]
+        return x
+
+
+    def _getPointsFrom2DBounds(self, v):
+        # add one to the number of cells
+        shp = numpy.array(v[:, :, 0].shape) + numpy.array((1, 1))
+        x = numpy.zeros(shp, numpy.float64)
+        x[:-1, :-1] = v[:, :, 0]
+        x[-1, :-1] = v[-1, :, 1]
+        x[-1, -1] = v[-1, -1, 2]
+        x[:-1, -1] = v[:, -1, 3]
+        return x
 
 
 ###############################################################################
