@@ -135,11 +135,14 @@ class ColorPoints(object):
 
 
     def update(self, key):
-        if key == 't':
-            # update time
+        newTimeStep = self.timeStep
+        if key == 't': # forward
+            newTimeStep = (self.timeStep + 1) % self.numTimes
+        elif key == 'b': # backward
+            newTimeStep = (self.timeStep - 1) % self.numTimes
+        if newTimeStep != self.timeStep:
             self.data[:] = self.getDataAtTime(self.timeStep)
-            print(f'info: updating time step = {self.timeStep}')
-            self.timeStep = (self.timeStep + 1) % self.numTimes
+            print(f'info: updating time step = {self.timeStep} to {newTimeStep}')
             self.c2p.Update()
             self.c2p.Modified()
 

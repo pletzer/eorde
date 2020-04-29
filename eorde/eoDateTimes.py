@@ -16,13 +16,15 @@ class DateTimes(object):
 
 
     def update(self, key):
-        if key == 't':
-            dt = self.dateTimes[self.stepIndex]
-            txt = f'{dt.year}-{dt.month:02d}-{dt.day:02d} {self.stepIndex:4d}'
-            print(txt)
-            self.actor.SetInput(txt)
-            self.actor.Modified()
+        dt = self.dateTimes[self.stepIndex]
+        txt = f'{dt.year}-{dt.month:02d}-{dt.day:02d} {self.stepIndex:4d}'
+        print(txt)
+        self.actor.SetInput(txt)
+        self.actor.Modified()
+        if key == 't': # forward
             self.stepIndex = (self.stepIndex + 1) % self.numSteps
+        elif key == 'b': # backward
+            self.stepIndex = (self.stepIndex - 1) % self.numSteps
 
 
     def getActor(self):

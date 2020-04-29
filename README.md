@@ -10,7 +10,7 @@ Eorde (old anglo-saxon for Earth) has a limited number of external dependencies.
 
 All these dependencioes can be easily installed with conda.
 
-There is no graphical user interface - you interact with the mouse (zoom, rotation and translation). To read the next time step just type "t".
+There is no graphical user interface - you interact with the mouse (zoom, rotation and translation). To read the next time step just type "t" (time) or "b" to step backward. Type "r" to reset the view and "q" to quit.
 
 ## How to install eorde
 
