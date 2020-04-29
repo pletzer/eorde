@@ -46,7 +46,7 @@ class NCReader(object):
             elif len(v.shape) == 3:
                 return self._getPointsFrom2DBounds(v)
         # failure
-        return []
+        raise RuntimeError("ERROR: no longitudes!")
 
 
     def getLatitudes(self):
@@ -57,7 +57,7 @@ class NCReader(object):
             elif len(v.shape) == 3:
                 return self._getPointsFrom2DBounds(v)
         # failure
-        return []
+        raise RuntimeError("ERROR: no latitudes!")
 
 
     def get2DLonsLats(self):
@@ -101,7 +101,7 @@ class NCReader(object):
             stdName = getattr(v, 'standard_name', '') or getattr(v, 'long_name', '')
             if stdName == standard_name:
                 return v
-        return res
+        raise RuntimeError(f"ERROR: no variable with standard_name or long_name {standard_name}")
 
 
     def getNetCDFVariableByName(self, name):
