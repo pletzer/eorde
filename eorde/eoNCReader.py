@@ -1,6 +1,7 @@
 import netCDF4
 import datetime
 import numpy
+import re
 
 class NCReader(object):
 
@@ -99,9 +100,9 @@ class NCReader(object):
         for vn in self.nc.variables:
             v = self.nc.variables[vn]
             stdName = getattr(v, 'standard_name', '') or getattr(v, 'long_name', '')
-            if stdName == standard_name:
+            if re.search(standard_name, stdName):
                 return v
-        raise RuntimeError(f"ERROR: no variable with standard_name or long_name {standard_name}")
+        raise RuntimeError(f"ERROR: no variable's standard_name or long_name matches regex {standard_name}")
 
 
     def getNetCDFVariableByName(self, name):

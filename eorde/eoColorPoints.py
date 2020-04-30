@@ -143,6 +143,7 @@ class ColorPoints(object):
         if newTimeStep != self.timeStep:
             self.data[:] = self.getDataAtTime(self.timeStep)
             print(f'info: updating time step = {self.timeStep} to {newTimeStep}')
+            self.dataArray.Modified()
             self.c2p.Update()
             self.c2p.Modified()
 
