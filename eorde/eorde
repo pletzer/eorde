@@ -8,6 +8,7 @@ from eorde.eoPlanet import Planet
 from eorde.eoColorCells import ColorCells
 from eorde.eoColorPoints import ColorPoints
 from eorde.eoContours import Contours
+from eorde.eoContinents import Continents
 from eorde.eoColorbar import Colorbar
 from eorde.eoDateTimes import DateTimes
 from eorde.eoScene import Scene
@@ -18,6 +19,7 @@ def main(ar):
     parser.add_argument('-c', dest='cellStdName', default='', help='Color cell variable')
     parser.add_argument('-p', dest='pointStdName', default='', help='Color point variable')
     parser.add_argument('-i', dest='isoStdName', default='', help='Show isolines of variable')
+    parser.add_argument('-C', dest='continents', action='store_true', help='Show continents')
     parser.add_argument('-f', dest='filename', default='', help='File name')
     args = parser.parse_args()
 
@@ -46,7 +48,10 @@ def main(ar):
         contour.setLineThickness(2)
         pipelines.append(contour)
         color = contour
-    
+
+    if args.continents:
+        continents = Continents(level=2)
+        pipelines.append(continents)
 
     if color:
         colorbar = Colorbar(color.getLookupTable())
