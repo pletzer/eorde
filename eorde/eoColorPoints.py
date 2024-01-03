@@ -106,6 +106,7 @@ class ColorPoints(object):
         self.mapper.SetInputData(self.sgrid)
         self.mapper.UseLookupTableScalarRangeOn()
         self.actor.SetMapper(self.mapper)
+        #self.actor.GetProperty().SetOpacity(0.5)
 
 
     def getLookupTable(self):
