@@ -8,18 +8,18 @@ from eorde.eoNCReader import NCReader
 class ColorCells:
 
 
-    def __init__(self, filename, varStandardName, level=0):
+    def __init__(self, filename, varName, level=0):
 
         self.radius = 1.0 + 0.01 * level
-        self.varStandardName = varStandardName
+        self.varName = varName
         self.timeStep = 0
 
         # read the data 
-        self.ncReader = NCReader(filename)
+        self.ncReader = NCReader(filename, varName)
         self.llons, self.llats = self.ncReader.get2DLonsLats()
-        self.ncVar = self.ncReader.getNetCDFVariableByStandardName(varStandardName)
+        self.ncVar = self.ncReader.getNetCDFVariableByStandardName(varName)
 
-        # find the time index positiuon in self.ncVar
+        # find the time index position in self.ncVar
         self.timeIndexPos = -1
         indx = 0
         for dimName in self.ncVar.dimensions:
@@ -65,7 +65,7 @@ class ColorCells:
             self.dataArray = vtk.vtkDoubleArray()
 
         self.dataArray.SetNumberOfComponents(1)
-        self.dataArray.SetName(varStandardName)
+        self.dataArray.SetName(varName)
         self.dataArray.SetVoidArray(self.data, self.numCells, 1)
 
         self.sgrid.GetCellData().SetScalars(self.dataArray)
@@ -153,8 +153,8 @@ def test():
     from eorde.eoPlanet import Planet
     
     filename = '../data/tos_Omon_GFDL-CM4_historical_r1i1p1f1_gr_201001-201412.nc'
-    varStandardName = 'sea_surface_temperature'
-    color = ColorCells(filename=filename, varStandardName=varStandardName, level=0)
+    varName = 'sea_surface_temperature'
+    color = ColorCells(filename=filename, varName=varName, level=0)
 
     planet = Planet(level=0)
     continents = Continents(level=1)

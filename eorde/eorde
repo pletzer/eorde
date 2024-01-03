@@ -16,9 +16,9 @@ from eorde.eoScene import Scene
 def main(ar):
 
     parser = argparse.ArgumentParser(description='Visualize earth data')
-    parser.add_argument('-c', dest='cellStdName', default='', help='Color cell variable')
-    parser.add_argument('-p', dest='pointStdName', default='', help='Color point variable')
-    parser.add_argument('-i', dest='isoStdName', default='', help='Show isolines of variable')
+    parser.add_argument('-c', dest='cellName', default='', help='Color cell variable')
+    parser.add_argument('-p', dest='pointName', default='', help='Color point variable')
+    parser.add_argument('-i', dest='isoName', default='', help='Show isolines of variable')
     parser.add_argument('-C', dest='continents', action='store_true', help='Show continents')
     parser.add_argument('-f', dest='filename', default='', help='File name')
     args = parser.parse_args()
@@ -34,17 +34,17 @@ def main(ar):
     pipelines = [planet]
 
     color = None
-    if args.cellStdName:
-        cellColor = ColorCells(filename=filename, varStandardName=args.cellStdName, level=1)
+    if args.cellName:
+        cellColor = ColorCells(filename=filename, varName=args.cellName, level=1)
         pipelines.append(cellColor)
         color = cellColor
-    elif args.pointStdName:
-        pointColor = ColorPoints(filename=filename, varStandardName=args.pointStdName, level=1)
+    elif args.pointName:
+        pointColor = ColorPoints(filename=filename, varName=args.pointName, level=1)
         pipelines.append(pointColor)
         color = pointColor
 
-    if args.isoStdName:
-        contour = Contours(filename=filename, varStandardName=args.isoStdName, level=2)
+    if args.isoName:
+        contour = Contours(filename=filename, varName=args.isoName, level=2)
         contour.setLineThickness(2)
         pipelines.append(contour)
         color = contour

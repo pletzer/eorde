@@ -8,17 +8,17 @@ from eorde.eoNCReader import NCReader
 class Contours(object):
 
 
-    def __init__(self, filename, varStandardName, level=0):
+    def __init__(self, filename, varName, level=0):
 
         self.radius = 1.0 + 0.01 * level
-        self.varStandardName = varStandardName
+        self.varName = varName
         self.numContours = 21
         self.timeStep = 0
 
         # read the data 
         self.ncReader = NCReader(filename)
         self.llons, self.llats = self.ncReader.get2DLonsLats()
-        self.ncVar = self.ncReader.getNetCDFVariableByStandardName(varStandardName)
+        self.ncVar = self.ncReader.getNetCDFVariableByStandardName(varName)
 
         # find the time index positiuon in self.ncVar
         self.timeIndexPos = -1
@@ -66,7 +66,7 @@ class Contours(object):
             self.dataArray = vtk.vtkDoubleArray()
 
         self.dataArray.SetNumberOfComponents(1)
-        self.dataArray.SetName(varStandardName)
+        self.dataArray.SetName(varName)
         self.dataArray.SetVoidArray(self.data, self.numCells, 1)
 
         self.sgrid.GetCellData().SetScalars(self.dataArray)
@@ -168,11 +168,11 @@ def test():
     from eorde.eoColorCells import ColorCells
     
     filename = '../data/tos_Omon_GFDL-CM4_historical_r1i1p1f1_gr_201001-201412.nc'
-    varStandardName = 'sea_surface_temperature'
+    varName = 'sea_surface_temperature'
 
-    color = ColorCells(filename=filename, varStandardName=varStandardName, level=1)
+    color = ColorCells(filename=filename, varName=varName, level=1)
     continents = Continents(level=1)
-    contours = Contours(filename=filename, varStandardName=varStandardName, level=3)
+    contours = Contours(filename=filename, varName=varName, level=3)
     dateTimes = DateTimes(dts=contours.getDateTimes(), pos=(800, 900), size=52, color=(1., 0., 0.))
 
     s = Scene()

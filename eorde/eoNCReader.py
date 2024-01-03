@@ -5,39 +5,44 @@ import re
 
 class NCReader(object):
 
-    def __init__(self, filename):
+    def __init__(self, filename, varName):
 
-        # we're after lat lon bounds (we cannot take the lats and lons as this would leave us with a gap)
-        self.lonBoundsName = ''
+        self.nc = netCDF4.Dataset(filename)
+        self.var = self.nc.variables[varName]
+        coordinates = getattr(self.var, 'coordinates', '').strip().split(' ')
+        if not coordinates:
+            raise RuntimeError(f'ERROR variable {varName} has no coordinates attribute!')
+
+        # get the longitudes and latitude names
         self.lonName = ''
-        self.latBoundsName = ''
         self.latName = ''
         self.timeName = ''
-        self.nc = netCDF4.Dataset(filename)
+        for coordName in coordinates:
+            v = self.nc.variables[coordName]
+            desc = getattr(v, 'standard_name', '') or \
+                   getattr(v, 'long_name', '') or \
+                   getattr(v, 'description', '').lower()
+            if 'longitude' in desc:
+                self.lonName = coordName
+            elif 'latitude' in desc:
+                self.latName = coordName
+            units = getattr(v, 'units', '')
+            if 'days' in units or \
+               'hours' in units or \
+               'minutes' in units or \
+               'seconds' in units:
+                self.timeName = coordName
 
-        for vn in self.nc.variables:
-            v = self.nc.variables[vn]
-            stdName = (getattr(v, 'standard_name', '') or getattr(v, 'long_name', '')).lower().strip()
-            if stdName == 'longitude bounds':
-                self.lonBoundsName = vn
-            elif stdName == 'longitude':
-                self.lonName = vn
-            elif stdName == 'latitude bounds':
-                self.latBoundsName = vn
-            elif stdName == 'latitude':
-                self.latName = vn
-            elif stdName == 'time':
-                self.timeName = vn
+        if not self.lonName:
+            raise RuntimeError(f'ERROR could not find longitude for variable {varName}!')
+        if not self.latName:
+            raise RuntimeError(f'ERROR could not find latitude for variable {varName}!')
 
-        # in some cases the bounds don't have a standard name and instead the 
-        # coords had a bounds attribute that refers to the bounds
-        if not self.lonBoundsName and self.lonName:
-            v = self.nc.variables[self.lonName]
-            self.lonBoundsName = getattr(v, 'bounds', '')
-        if not self.latBoundsName and self.latName:
-            v = self.nc.variables[self.latName]
-            self.latBoundsName = getattr(v, 'bounds', '')
-
+        v = self.nc.variables[self.lonName]
+        self.lonBoundsName = getattr(v, 'bounds', '')
+        v = self.nc.variables[self.latName]
+        self.latBoundsName = getattr(v, 'bounds', '')
+        
 
     def getLongitudes(self):
         if self.lonBoundsName:
@@ -46,9 +51,8 @@ class NCReader(object):
                 return self._getPointsFrom1DBounds(v)
             elif len(v.shape) == 3:
                 return self._getPointsFrom2DBounds(v)
-        # failure
-        raise RuntimeError("ERROR: no longitudes!")
-
+        else:
+            return self.nc.variables[self.lonName]
 
     def getLatitudes(self):
         if self.latBoundsName:
@@ -57,9 +61,8 @@ class NCReader(object):
                 return self._getPointsFrom1DBounds(v)
             elif len(v.shape) == 3:
                 return self._getPointsFrom2DBounds(v)
-        # failure
-        raise RuntimeError("ERROR: no latitudes!")
-
+        else:
+            return self.nc.variables[self.latName]
 
     def get2DLonsLats(self):
         lons = self.getLongitudes()
@@ -95,18 +98,8 @@ class NCReader(object):
         return dts
 
 
-    def getNetCDFVariableByStandardName(self, standard_name):
-        res = None
-        for vn in self.nc.variables:
-            v = self.nc.variables[vn]
-            stdName = getattr(v, 'standard_name', '') or getattr(v, 'long_name', '')
-            if re.search(standard_name, stdName):
-                return v
-        raise RuntimeError(f"ERROR: no variable's standard_name or long_name matches regex {standard_name}")
-
-
-    def getNetCDFVariableByName(self, name):
-        return self.nc.variables[name]
+    def getVariable(self, varName):
+        return self.var
 
 
     def _getPointsFrom1DBounds(self, v):
