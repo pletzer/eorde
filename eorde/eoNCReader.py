@@ -86,12 +86,24 @@ class NCReader(object):
     def getDateTimes(self):
         tv = self.getTimes()
         tu = self.getTimeUnits().split()
-        dateStart = [int(i) for i in tu[2].split('-')] # year, month, day
-        timeStart = [int(i) for i in tu[3].split(':')] # hour, minute, second
-        dt0 = datetime.datetime(year=dateStart[0], month=dateStart[1], day=dateStart[2],
-                                hour=timeStart[0], minute=timeStart[1], second=timeStart[2])
-        deltas = tu[0]
-        dts = [dt0 + eval('datetime.timedelta({}={})'.format(deltas, t)) for t in tv]
+        try:
+            dateStart = [int(i) for i in tu[2].split('-')] # year, month, day
+            timeStart = [int(i) for i in tu[3].split(':')] # hour, minute, second
+            dt0 = datetime.datetime(year=dateStart[0], month=dateStart[1], day=dateStart[2],
+                                    hour=timeStart[0], minute=timeStart[1], second=timeStart[2])
+            deltas = tu[0]
+            dts = [dt0 + eval('datetime.timedelta({}={})'.format(deltas, t)) for t in tv]
+        except:
+            try:
+                # days since year-month-day
+                yearStart, monthStart, dayStart = tu[2].split('-')
+                dt0 = datetime.datetime(year = int(yearStart), 
+                                        month=int(monthStart), 
+                                        day=int(dayStart))
+                deltas = tu[0]
+                dts = [dt0 + eval(f'datetime.timedelta({deltas}={t})') for t in tv]
+            except:
+                return tv
         return dts
 
 
